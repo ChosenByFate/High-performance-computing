@@ -85,9 +85,10 @@
       <h4>Graphic:</h4>
       <p><img src=https://github.com/ChosenByFate/High-performance-computing/blob/master/02%20(Genetic%20algorithm)/Graphics/1000%20points.png></p>
     </p>
+    <hr width=100% align="left">
   </body>
   <footer>
-    <h3>Log</h3>
+    <h3>Log.</h3>
     <p>
       GPU
 
