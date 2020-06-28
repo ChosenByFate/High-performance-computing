@@ -8,7 +8,7 @@
     <p><b>GPU</b>: NVIDIA GeForce GTX 950</p>
     <p>
       <h3>Results:</h3>
-      <p><l>Source.cpp</l> - implementation on the CPU (C/C++).</p>
+      <p><u>Source.cpp</u> - implementation on the CPU (C/C++).</p>
       <p><l>Source.cu</l> - implementation on the GPU (CUDA C).</p>
       <p><l>Generate and plot data.ipynb</l> - visualization (Python).</p>
       <p><l>Output.txt</l> - coefficients of the polynomial in ascending order of degree (starting from 0).</p>
