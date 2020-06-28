@@ -90,13 +90,13 @@ void Fitness(double *x, double *y, Polynomial *individuals, int *numberOfPoints,
 {
 	double MSE;
 	double approximatingFunction;
-	for (int i = 0; i < *numberOfIndividuals; ++i)	// Индивиды.
+	for (int i = 0; i < *numberOfIndividuals; ++i)	// Г€Г­Г¤ГЁГўГЁГ¤Г».
 	{
 		MSE = 0.;
-		for (int j = 0; j < *numberOfPoints; ++j)	// Все точки.
+		for (int j = 0; j < *numberOfPoints; ++j)	// Г‚Г±ГҐ ГІГ®Г·ГЄГЁ.
 		{
 			approximatingFunction = 0.;
-			for (char k = 0; k < _Number_Of_Parameters; ++k)	// Мощность полинома.
+			for (char k = 0; k < _Number_Of_Parameters; ++k)	// ГЊГ®Г№Г­Г®Г±ГІГј ГЇГ®Г«ГЁГ­Г®Г¬Г .
 			{
 				approximatingFunction += individuals[i].Coefficients[k] * pow(x[j], k);
 			}
@@ -108,9 +108,9 @@ void Fitness(double *x, double *y, Polynomial *individuals, int *numberOfPoints,
 
 void Crossover(Polynomial *individuals, int *numberOfIndividuals, int *threshold)
 {
-	for (int i = *threshold; i < *numberOfIndividuals; i++)	//Сохранить лучших из популяции.
+	for (int i = *threshold; i < *numberOfIndividuals; i++)	//Г‘Г®ГµГ°Г Г­ГЁГІГј Г«ГіГ·ГёГЁГµ ГЁГ§ ГЇГ®ГЇГіГ«ГїГ¶ГЁГЁ.
 	{
-		for (char j = 0; j < _Number_Of_Parameters; ++j)	//Худшие - умрут.
+		for (char j = 0; j < _Number_Of_Parameters; ++j)	//Г•ГіГ¤ГёГЁГҐ - ГіГ¬Г°ГіГІ.
 		{
 			individuals[i].Coefficients[j] = individuals[i - *threshold].Coefficients[j];
 		}
@@ -118,9 +118,9 @@ void Crossover(Polynomial *individuals, int *numberOfIndividuals, int *threshold
 	double exchange;
 	for (int i = *threshold; i < *numberOfIndividuals - 1; i+=2)	//Crossing.
 	{
-		for (char j = 0; j < _Number_Of_Parameters; ++j)	//Скрещивание.
+		for (char j = 0; j < _Number_Of_Parameters; ++j)	//Г‘ГЄГ°ГҐГ№ГЁГўГ Г­ГЁГҐ.
 		{
-			if (rand() % 2)	// (2/5 и 3/5) 40% и 60% генов от 1 и 2 родителей.
+			if (rand() % 2)	// (2/5 ГЁ 3/5) 40% ГЁ 60% ГЈГҐГ­Г®Гў Г®ГІ 1 ГЁ 2 Г°Г®Г¤ГЁГІГҐГ«ГҐГ©.
 			{
 				exchange = individuals[i].Coefficients[j];
 				individuals[i].Coefficients[j] = individuals[i + 1].Coefficients[j];
@@ -128,7 +128,7 @@ void Crossover(Polynomial *individuals, int *numberOfIndividuals, int *threshold
 			}
 		}
 	}
-	//В итоге: первая половина массива (кроме 1 лучшего индивида) - в будущем мутируют; вторая - потомство.
+	//Г‚ ГЁГІГ®ГЈГҐ: ГЇГҐГ°ГўГ Гї ГЇГ®Г«Г®ГўГЁГ­Г  Г¬Г Г±Г±ГЁГўГ  (ГЄГ°Г®Г¬ГҐ 1 Г«ГіГ·ГёГҐГЈГ® ГЁГ­Г¤ГЁГўГЁГ¤Г ) - Гў ГЎГіГ¤ГіГ№ГҐГ¬ Г¬ГіГІГЁГ°ГіГѕГІ; ГўГІГ®Г°Г Гї - ГЇГ®ГІГ®Г¬Г±ГІГўГ®.
 }
 
 void Mutation(Polynomial *individuals, int *threshold, double *mean, double *variance)	//int *numberOfIndividuals, 
@@ -136,11 +136,11 @@ void Mutation(Polynomial *individuals, int *threshold, double *mean, double *var
 	double change;
 	for (int i = 1; i < *threshold; ++i)	//First individual is the best.
 	{
-		//if (rand() % 2)	//Шанс мутации индивида = 50%.
+		//if (rand() % 2)	//ГГ Г­Г± Г¬ГіГІГ Г¶ГЁГЁ ГЁГ­Г¤ГЁГўГЁГ¤Г  = 50%.
 		//	continue;
 		for (int j = 0; j < _Number_Of_Parameters; ++j)
 		{
-			if (rand() % 2)	//Шанс мутации гена = 50%.
+			if (rand() % 2)	//ГГ Г­Г± Г¬ГіГІГ Г¶ГЁГЁ ГЈГҐГ­Г  = 50%.
 				continue;
 			change = (std::rand() / (RAND_MAX / 2.) - 1.) * *variance + *mean;
 			individuals[i].Coefficients[j] += change;
@@ -158,7 +158,7 @@ int main()
 	int numberOfEpochs;
 	int numberOfConstantEpochs;
 	int currentConstEpoch = 0;
-	int threshold;	// Порог разбивающий популяцию на две (равные) части.
+	int threshold;	// ГЏГ®Г°Г®ГЈ Г°Г Г§ГЎГЁГўГ ГѕГ№ГЁГ© ГЇГ®ГЇГіГ«ГїГ¶ГЁГѕ Г­Г  Г¤ГўГҐ (Г°Г ГўГ­Г»ГҐ) Г·Г Г±ГІГЁ.
 	double *x = nullptr;
 	double *y = nullptr;
 	double minimalError = std::numeric_limits<double>::max();
@@ -209,7 +209,7 @@ int main()
 	+ Fitness
 	+ Crossover
 	+ Mutation
-	+/- Selection
+	+ Selection
 	+ Show best fitness.
 	*/
 	clock_t startTimer, stopTimer;
@@ -217,7 +217,7 @@ int main()
 	for (int i = 0; i < numberOfEpochs; ++i)
 	{
 		Fitness(x, y, polynomials, &numberOfPoints, &numberOfIndividuals);
-		/// Поиск меньшей ошибки.
+		/// ГЏГ®ГЁГ±ГЄ Г¬ГҐГ­ГјГёГҐГ© Г®ГёГЁГЎГЄГЁ.
 		std::qsort(polynomials, numberOfIndividuals, sizeof(Polynomial), Polynomial::compare);
 		printf("Epoch %i. Lowest error = %lf\n", i, polynomials[0].Error);
 		if (minimalError > polynomials[0].Error)
@@ -231,7 +231,7 @@ int main()
 			if (currentConstEpoch >= numberOfConstantEpochs)
 				break;
 		}
-		/// Репродукция и мутация.
+		/// ГђГҐГЇГ°Г®Г¤ГіГЄГ¶ГЁГї ГЁ Г¬ГіГІГ Г¶ГЁГї.
 		Crossover(polynomials, &numberOfIndividuals, &threshold);
 		Mutation(polynomials, &threshold, &mean, &variance);
 		
