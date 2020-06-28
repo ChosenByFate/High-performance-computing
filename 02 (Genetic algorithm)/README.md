@@ -8,9 +8,12 @@
     <p><b>GPU</b>: NVIDIA GeForce GTX 950</p>
     <p>
       <h3>Results:</h3>
-      <p><i>Source.cpp</i> - implementation on the CPU (C/C++).</p>
-      <p><i>Source.cu</i> - implementation on the GPU (CUDA C).</p>
-      <p><i>Generate and plot data.ipynb</i> - visualization (Python).</p>
+      <p><l>Source.cpp</l> - implementation on the CPU (C/C++).</p>
+      <p><l>Source.cu</l> - implementation on the GPU (CUDA C).</p>
+      <p><l>Generate and plot data.ipynb</l> - visualization (Python).</p>
+      <p><l>Output.txt</l> - coefficients of the polynomial in ascending order of degree (starting from 0).</p>
+      <p><l>InputX.txt</l> - a set of points by x. The first element is the number of points.</p>
+      <p><l>InputY.txt</l> - a set of points by y.</p>
       <table border = "0">
         <caption><h4>Execution time in seconds. 500 points; 5000 epochs.</h4></caption>
         <tr>
