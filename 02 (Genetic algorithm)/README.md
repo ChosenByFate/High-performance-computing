@@ -8,6 +8,9 @@
     <p><b>GPU</b>: NVIDIA GeForce GTX 950</p>
     <p>
       <h3>Results:</h3>
+      <p><i>Source.cpp</i> - implementation on the CPU (C/C++).</p>
+      <p><i>Source.cu</i> - implementation on the GPU (CUDA C).</p>
+      <p><i>Generate and plot data.ipynb</i> - visualization (Python).</p>
       <table border = "0">
         <caption><h4>Execution time in seconds. 500 points; 5000 epochs.</h4></caption>
         <tr>
