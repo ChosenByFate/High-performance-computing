@@ -119,7 +119,7 @@ __global__ void Fitness(double *x, double *y, Polynomial *individuals, int numbe
 		for (int j = 0; j < numberOfPoints; ++j)
 		{
 			approximatingFunction = 0.;
-			for (char k = 0; k < _Number_Of_Parameters; ++k)	// Мощность полинома.
+			for (char k = 0; k < _Number_Of_Parameters; ++k)	// РњРѕС‰РЅРѕСЃС‚СЊ РїРѕР»РёРЅРѕРјР°.
 			{
 				approximatingFunction += individuals[individual].Coefficients[k] * pow(x[j], (double)k);
 			}
@@ -129,13 +129,13 @@ __global__ void Fitness(double *x, double *y, Polynomial *individuals, int numbe
 	}
 }
 
-//Потоков = numberOfIndividuals - threshold.
+//РџРѕС‚РѕРєРѕРІ = numberOfIndividuals - threshold.
 __global__ void Crossover(Polynomial *individuals, int numberOfIndividuals, int threshold)
 {
 	int individual = blockIdx.x + threshold;
 	if (individual < numberOfIndividuals)
 	{
-		for (char i = 0; i < _Number_Of_Parameters; ++i)	//Худшие - умрут.
+		for (char i = 0; i < _Number_Of_Parameters; ++i)	//РҐСѓРґС€РёРµ - СѓРјСЂСѓС‚.
 		{
 			individuals[individual].Coefficients[i] = individuals[individual - threshold].Coefficients[i];
 		}
@@ -149,10 +149,10 @@ __global__ void CrossoverNext(Polynomial *individuals, int numberOfIndividuals, 
 	{
 		curandState state;
 		double exchange;
-		for (char j = 0; j < _Number_Of_Parameters; ++j)	//Скрещивание.
+		for (char j = 0; j < _Number_Of_Parameters; ++j)	//РЎРєСЂРµС‰РёРІР°РЅРёРµ.
 		{
 			curand_init((unsigned long long)clock() + individual, 0, 0, &state);
-			if ((curand_normal(&state) - 0.5f) > 0)	// (2/5 и 3/5) 40% и 60% генов от 1 и 2 родителей.
+			if ((curand_normal(&state) - 0.5f) > 0)	// (2/5 Рё 3/5) 40% Рё 60% РіРµРЅРѕРІ РѕС‚ 1 Рё 2 СЂРѕРґРёС‚РµР»РµР№.
 			{
 				exchange = individuals[individual].Coefficients[j];
 				individuals[individual].Coefficients[j] = individuals[individual + 1].Coefficients[j];
@@ -160,10 +160,10 @@ __global__ void CrossoverNext(Polynomial *individuals, int numberOfIndividuals, 
 			}
 		}
 	}
-	//В итоге: первая половина массива (кроме 1 лучшего индивида) - в будущем мутируют; вторая - потомство.
+	//Р’ РёС‚РѕРіРµ: РїРµСЂРІР°СЏ РїРѕР»РѕРІРёРЅР° РјР°СЃСЃРёРІР° (РєСЂРѕРјРµ 1 Р»СѓС‡С€РµРіРѕ РёРЅРґРёРІРёРґР°) - РІ Р±СѓРґСѓС‰РµРј РјСѓС‚РёСЂСѓСЋС‚; РІС‚РѕСЂР°СЏ - РїРѕС‚РѕРјСЃС‚РІРѕ.
 }
 
-//Потоков = threshold - 1.
+//РџРѕС‚РѕРєРѕРІ = threshold - 1.
 __global__ void Mutation(Polynomial *individuals, int numberOfIndividuals, int threshold, double mean, double variance)
 {
 	int individual = blockIdx.x + threshold + 1; 	//First individual is the best. That's why we don't touch it.
@@ -174,7 +174,7 @@ __global__ void Mutation(Polynomial *individuals, int numberOfIndividuals, int t
 		for (int j = 0; j < _Number_Of_Parameters; ++j)
 		{
 			curand_init((unsigned long long)clock() + individual, 0, 0, &state);
-			if ((curand_normal(&state) - 0.5f) > 0)	//Шанс мутации гена = 50%.
+			if ((curand_normal(&state) - 0.5f) > 0)	//РЁР°РЅСЃ РјСѓС‚Р°С†РёРё РіРµРЅР° = 50%.
 				continue;
 			//curand_log_normal_double(...)
 			curand_init((unsigned long long)clock() + individual, 0, 0, &state);
@@ -194,7 +194,7 @@ int main()
 	int numberOfEpochs;
 	int numberOfConstantEpochs;
 	int currentConstEpoch = 0;
-	int threshold;	// Порог разбивающий популяцию на две (равные) части.
+	int threshold;	// РџРѕСЂРѕРі СЂР°Р·Р±РёРІР°СЋС‰РёР№ РїРѕРїСѓР»СЏС†РёСЋ РЅР° РґРІРµ (СЂР°РІРЅС‹Рµ) С‡Р°СЃС‚Рё.
 	double *x = nullptr;
 	double *y = nullptr;
 	double minimalError = std::numeric_limits<double>::max();
@@ -230,6 +230,8 @@ int main()
 	HANDLE_ERROR(cudaMalloc((void**)&yGPU, numberOfPoints * sizeof(double)));
 	HANDLE_ERROR(cudaMemcpy(xGPU, x, numberOfPoints * sizeof(double), cudaMemcpyHostToDevice));
 	HANDLE_ERROR(cudaMemcpy(yGPU, y, numberOfPoints * sizeof(double), cudaMemcpyHostToDevice));
+	free(x);
+	free(y);
 
 	std::cout << "Number of individuals (1000 - 2000): ";
 	std::cin >> numberOfIndividuals;
@@ -256,19 +258,22 @@ int main()
 	Polynomial *polynomialsGPU;
 	HANDLE_ERROR(cudaMalloc((void**)&polynomialsGPU, numberOfIndividuals * sizeof(Polynomial)));
 	HANDLE_ERROR(cudaMemcpy(polynomialsGPU, polynomials, numberOfIndividuals * sizeof(Polynomial), cudaMemcpyHostToDevice));
-	
+	free(polynomials);
+	Polynomial *polynomial = (Polynomial*)malloc(1 * sizeof(Polynomial));
+	polynomial[0] = Polynomial();
+
 	clock_t startTimer, stopTimer;
 	startTimer = clock();
 	for (int i = 0; i < numberOfEpochs; ++i)
 	{
 		Fitness<<<gridDim, blockDim>>>(xGPU, yGPU, polynomialsGPU, numberOfPoints, numberOfIndividuals);
-		/// Поиск меньшей ошибки.
+		/// РџРѕРёСЃРє РјРµРЅСЊС€РµР№ РѕС€РёР±РєРё.
 		thrust::sort(thrust::device, polynomialsGPU, polynomialsGPU + numberOfIndividuals);
-		HANDLE_ERROR(cudaMemcpy(polynomials, polynomialsGPU, numberOfIndividuals * sizeof(Polynomial), cudaMemcpyDeviceToHost));
-		printf("Epoch %i. Lowest error = %lf\n", i, polynomials[0].Error);
-		if (minimalError > polynomials[0].Error)
+		HANDLE_ERROR(cudaMemcpy(polynomial, polynomialsGPU, 1 * sizeof(Polynomial), cudaMemcpyDeviceToHost));
+		printf("Epoch %i. Lowest error = %lf\n", i, polynomial[0].Error);
+		if (minimalError > polynomial[0].Error)
 		{
-			minimalError = polynomials[0].Error;
+			minimalError = polynomial[0].Error;
 			currentConstEpoch = 0;
 		}
 		else
@@ -277,27 +282,24 @@ int main()
 			if (currentConstEpoch >= numberOfConstantEpochs)
 				break;
 		}
-		/// Репродукция и мутация.
+		/// Р РµРїСЂРѕРґСѓРєС†РёСЏ Рё РјСѓС‚Р°С†РёСЏ.
 		Crossover<<<numberOfIndividuals - threshold, 1>>>(polynomialsGPU, numberOfIndividuals, threshold);
 		CrossoverNext<<<numberOfIndividuals - 1 - threshold, 1>>>(polynomialsGPU, numberOfIndividuals, threshold);
 		Mutation<<<threshold - 1, 1>>>(polynomialsGPU, numberOfIndividuals, threshold, mean, variance);
-		HANDLE_ERROR(cudaMemcpy(polynomials, polynomialsGPU, numberOfIndividuals * sizeof(Polynomial), cudaMemcpyDeviceToHost));
 	}
 	stopTimer = clock();
 	printf("Time on GPU = %lf seconds.\n", (double)(stopTimer - startTimer) / CLOCKS_PER_SEC);
-	HANDLE_ERROR(cudaMemcpy(polynomials, polynomialsGPU, numberOfIndividuals * sizeof(Polynomial), cudaMemcpyDeviceToHost));
+	HANDLE_ERROR(cudaMemcpy(polynomial, polynomialsGPU, 1 * sizeof(Polynomial), cudaMemcpyDeviceToHost));
 	for (char i = 0; i < _Number_Of_Parameters - 1; ++i)
 	{
-		printf("%.20lf * x^%i + ", polynomials[0].Coefficients[i], i);
+		printf("%.20lf * x^%i + ", polynomial[0].Coefficients[i], i);
 	}
-	printf("%.20lf * x^%i\n", polynomials[0].Coefficients[_Number_Of_Parameters - 1], _Number_Of_Parameters - 1);
+	printf("%.20lf * x^%i\n", polynomial[0].Coefficients[_Number_Of_Parameters - 1], _Number_Of_Parameters - 1);
 	printf("blocksPerGridDimX (points) %i.\n", blocksPerGridDimX);
-	WriteToFile("Output.txt", polynomials[0].Coefficients);
+	WriteToFile("Output.txt", polynomial[0].Coefficients);
 	HANDLE_ERROR(cudaFree(polynomialsGPU));
 	HANDLE_ERROR(cudaFree(xGPU));
 	HANDLE_ERROR(cudaFree(yGPU));
-	free(polynomials);
-	free(x);
-	free(y);
+	free(polynomial);
 //	system("pause");
 }
