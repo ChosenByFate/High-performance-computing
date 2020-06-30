@@ -90,13 +90,13 @@ void Fitness(double *x, double *y, Polynomial *individuals, int *numberOfPoints,
 {
 	double MSE;
 	double approximatingFunction;
-	for (int i = 0; i < *numberOfIndividuals; ++i)	// Èíäèâèäû.
+	for (int i = 0; i < *numberOfIndividuals; ++i)	// Индивиды.
 	{
 		MSE = 0.;
-		for (int j = 0; j < *numberOfPoints; ++j)	// Âñå òî÷êè.
+		for (int j = 0; j < *numberOfPoints; ++j)	// Все точки.
 		{
 			approximatingFunction = 0.;
-			for (char k = 0; k < _Number_Of_Parameters; ++k)	// Ìîùíîñòü ïîëèíîìà.
+			for (char k = 0; k < _Number_Of_Parameters; ++k)	// Мощность полинома.
 			{
 				approximatingFunction += individuals[i].Coefficients[k] * pow(x[j], k);
 			}
@@ -108,9 +108,9 @@ void Fitness(double *x, double *y, Polynomial *individuals, int *numberOfPoints,
 
 void Crossover(Polynomial *individuals, int *numberOfIndividuals, int *threshold)
 {
-	for (int i = *threshold; i < *numberOfIndividuals; i++)	//Ñîõðàíèòü ëó÷øèõ èç ïîïóëÿöèè.
+	for (int i = *threshold; i < *numberOfIndividuals; i++)	//Сохранить лучших из популяции.
 	{
-		for (char j = 0; j < _Number_Of_Parameters; ++j)	//Õóäøèå - óìðóò.
+		for (char j = 0; j < _Number_Of_Parameters; ++j)	//Худшие - умрут.
 		{
 			individuals[i].Coefficients[j] = individuals[i - *threshold].Coefficients[j];
 		}
@@ -118,9 +118,9 @@ void Crossover(Polynomial *individuals, int *numberOfIndividuals, int *threshold
 	double exchange;
 	for (int i = *threshold; i < *numberOfIndividuals - 1; i+=2)	//Crossing.
 	{
-		for (char j = 0; j < _Number_Of_Parameters; ++j)	//Ñêðåùèâàíèå.
+		for (char j = 0; j < _Number_Of_Parameters; ++j)	//Скрещивание.
 		{
-			if (rand() % 2)	// (2/5 è 3/5) 40% è 60% ãåíîâ îò 1 è 2 ðîäèòåëåé.
+			if (rand() % 2)	// (2/5 и 3/5) 40% и 60% генов от 1 и 2 родителей.
 			{
 				exchange = individuals[i].Coefficients[j];
 				individuals[i].Coefficients[j] = individuals[i + 1].Coefficients[j];
@@ -128,7 +128,7 @@ void Crossover(Polynomial *individuals, int *numberOfIndividuals, int *threshold
 			}
 		}
 	}
-	//Â èòîãå: ïåðâàÿ ïîëîâèíà ìàññèâà (êðîìå 1 ëó÷øåãî èíäèâèäà) - â áóäóùåì ìóòèðóþò; âòîðàÿ - ïîòîìñòâî.
+	//В итоге: первая половина массива (кроме 1 лучшего индивида) - в будущем мутируют; вторая - потомство.
 }
 
 void Mutation(Polynomial *individuals, int *threshold, double *mean, double *variance)	//int *numberOfIndividuals, 
@@ -136,11 +136,11 @@ void Mutation(Polynomial *individuals, int *threshold, double *mean, double *var
 	double change;
 	for (int i = 1; i < *threshold; ++i)	//First individual is the best.
 	{
-		//if (rand() % 2)	//Øàíñ ìóòàöèè èíäèâèäà = 50%.
+		//if (rand() % 2)	//Шанс мутации индивида = 50%.
 		//	continue;
 		for (int j = 0; j < _Number_Of_Parameters; ++j)
 		{
-			if (rand() % 2)	//Øàíñ ìóòàöèè ãåíà = 50%.
+			if (rand() % 2)	//Шанс мутации гена = 50%.
 				continue;
 			change = (std::rand() / (RAND_MAX / 2.) - 1.) * *variance + *mean;
 			individuals[i].Coefficients[j] += change;
@@ -158,7 +158,7 @@ int main()
 	int numberOfEpochs;
 	int numberOfConstantEpochs;
 	int currentConstEpoch = 0;
-	int threshold;	// Ïîðîã ðàçáèâàþùèé ïîïóëÿöèþ íà äâå (ðàâíûå) ÷àñòè.
+	int threshold;	// Порог разбивающий популяцию на две (равные) части.
 	double *x = nullptr;
 	double *y = nullptr;
 	double minimalError = std::numeric_limits<double>::max();
@@ -209,7 +209,7 @@ int main()
 	+ Fitness
 	+ Crossover
 	+ Mutation
-	+ Selection
+	+/- Selection
 	+ Show best fitness.
 	*/
 	clock_t startTimer, stopTimer;
@@ -217,7 +217,7 @@ int main()
 	for (int i = 0; i < numberOfEpochs; ++i)
 	{
 		Fitness(x, y, polynomials, &numberOfPoints, &numberOfIndividuals);
-		/// Ïîèñê ìåíüøåé îøèáêè.
+		/// Поиск меньшей ошибки.
 		std::qsort(polynomials, numberOfIndividuals, sizeof(Polynomial), Polynomial::compare);
 		printf("Epoch %i. Lowest error = %lf\n", i, polynomials[0].Error);
 		if (minimalError > polynomials[0].Error)
@@ -231,7 +231,7 @@ int main()
 			if (currentConstEpoch >= numberOfConstantEpochs)
 				break;
 		}
-		/// Ðåïðîäóêöèÿ è ìóòàöèÿ.
+		/// Репродукция и мутация.
 		Crossover(polynomials, &numberOfIndividuals, &threshold);
 		Mutation(polynomials, &threshold, &mean, &variance);
 		
