@@ -64,7 +64,7 @@ double *ReadFromFile(const char *FileName, int *count)
 	return Destination;
 }
 
-void WriteToFile(const char *FileName, double *Source, int count = _Number_Of_Parameters, bool saveCount = false, const char *separator = "\t")
+void WriteToFile(const char *FileName, const double *Source, const int count = _Number_Of_Parameters, const bool saveCount = false, const char *separator = "\t")
 {
 	FILE *Stream;
 	if ((Stream = fopen(FileName, "w")) == NULL)
@@ -86,7 +86,7 @@ void WriteToFile(const char *FileName, double *Source, int count = _Number_Of_Pa
 	fclose(Stream);
 }
 
-void Fitness(double *x, double *y, Polynomial *individuals, int *numberOfPoints, int *numberOfIndividuals)
+void Fitness(const double *x, const double *y, Polynomial *individuals, const int *numberOfPoints, const int *numberOfIndividuals)
 {
 	double MSE;
 	double approximatingFunction;
@@ -106,7 +106,7 @@ void Fitness(double *x, double *y, Polynomial *individuals, int *numberOfPoints,
 	}
 }
 
-void Crossover(Polynomial *individuals, int *numberOfIndividuals, int *threshold)
+void Crossover(Polynomial *individuals, const int *numberOfIndividuals, const int *threshold)
 {
 	for (int i = *threshold; i < *numberOfIndividuals; i++)	//Сохранить лучших из популяции.
 	{
@@ -131,7 +131,7 @@ void Crossover(Polynomial *individuals, int *numberOfIndividuals, int *threshold
 	//В итоге: первая половина массива (кроме 1 лучшего индивида) - в будущем мутируют; вторая - потомство.
 }
 
-void Mutation(Polynomial *individuals, int *threshold, double *mean, double *variance)	//int *numberOfIndividuals, 
+void Mutation(Polynomial *individuals, const int *threshold, const double *mean, const double *variance)	//int *numberOfIndividuals, 
 {
 	double change;
 	for (int i = 1; i < *threshold; ++i)	//First individual is the best.
@@ -152,16 +152,8 @@ int main()
 {
 	srand((int)time(NULL));
 	bool dataFromFiles;
-	int numberOfPoints = NULL;
-	int numberOfIndividuals;
-	double mean, variance;
-	int numberOfEpochs;
-	int numberOfConstantEpochs;
-	int currentConstEpoch = 0;
-	int threshold;	// Порог разбивающий популяцию на две (равные) части.
-	double *x = nullptr;
-	double *y = nullptr;
-	double minimalError = std::numeric_limits<double>::max();
+	int numberOfPoints = NULL, numberOfIndividuals, numberOfEpochs, numberOfConstantEpochs, currentConstEpoch = 0;
+	double mean, variance, *x = nullptr, *y = nullptr, minimalError = std::numeric_limits<double>::max();
 	std::cout << "Points from files (1 - YES, 0 - NO): ";
 	std::cin >> dataFromFiles;
 	if (dataFromFiles)
@@ -199,7 +191,7 @@ int main()
 	std::cin >> numberOfEpochs;
 	std::cout << "Number of epochs with constant value of the best fitness: ";
 	std::cin >> numberOfConstantEpochs;
-	threshold = int(numberOfIndividuals / 2.f + 0.5f);
+	const int threshold = int(numberOfIndividuals / 2.f + 0.5f);
 	Polynomial *polynomials = (Polynomial*)malloc(numberOfIndividuals * sizeof(Polynomial));
 	for (int i = 0; i < numberOfIndividuals; i++)
 	{
