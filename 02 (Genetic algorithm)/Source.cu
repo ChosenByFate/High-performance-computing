@@ -102,14 +102,14 @@ void WriteToFile(const char *FileName, double *Source, int count = _Number_Of_Pa
 	fclose(Stream);
 }
 
-__global__ void ClearError(Polynomial *individuals, int numberOfIndividuals)
+__global__ void ClearError(Polynomial *individuals, const int numberOfIndividuals)
 {
 	const int individual = blockIdx.x;
 	if (individual < numberOfIndividuals)
 		individuals[individual].Error = 0;
 }
 
-__global__ void Fitness(double *x, double *y, Polynomial *individuals, int numberOfPoints, int numberOfIndividuals)
+__global__ void Fitness(double *x, double *y, Polynomial *individuals, const int numberOfPoints, const int numberOfIndividuals)
 {
 	const int individual = blockIdx.x * blockDim.x + threadIdx.x;
 	if (individual < numberOfIndividuals)
@@ -130,7 +130,7 @@ __global__ void Fitness(double *x, double *y, Polynomial *individuals, int numbe
 }
 
 //Потоков = numberOfIndividuals - threshold.
-__global__ void Crossover(Polynomial *individuals, int numberOfIndividuals, int threshold)
+__global__ void Crossover(Polynomial *individuals, const int numberOfIndividuals, const int threshold)
 {
 	const int individual = blockIdx.x * blockDim.x + threadIdx.x + threshold;
 	if (individual < numberOfIndividuals)
@@ -142,7 +142,7 @@ __global__ void Crossover(Polynomial *individuals, int numberOfIndividuals, int 
 	}
 }
 
-__global__ void CrossoverNext(Polynomial *individuals, int numberOfIndividuals, int threshold)
+__global__ void CrossoverNext(Polynomial *individuals, const int numberOfIndividuals, const int threshold)
 {
 	const int individual = blockIdx.x * blockDim.x + threadIdx.x + threshold;
 	if (individual < numberOfIndividuals && !(individual % 2))
@@ -164,7 +164,7 @@ __global__ void CrossoverNext(Polynomial *individuals, int numberOfIndividuals, 
 }
 
 //Потоков = threshold - 1.
-__global__ void Mutation(Polynomial *individuals, int numberOfIndividuals, int threshold, double mean, double variance)
+__global__ void Mutation(Polynomial *individuals, const int numberOfIndividuals, const int threshold, const double mean, const double variance)
 {
 	const int individual = blockIdx.x * blockDim.x + threadIdx.x + threshold + 1; 	//First individual is the best. That's why we don't touch it.
 	if (individual < numberOfIndividuals)
