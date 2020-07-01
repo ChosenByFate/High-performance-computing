@@ -104,14 +104,14 @@ void WriteToFile(const char *FileName, double *Source, int count = _Number_Of_Pa
 
 __global__ void ClearError(Polynomial *individuals, int numberOfIndividuals)
 {
-	int individual = blockIdx.x;
+	const int individual = blockIdx.x;
 	if (individual < numberOfIndividuals)
 		individuals[individual].Error = 0;
 }
 
 __global__ void Fitness(double *x, double *y, Polynomial *individuals, int numberOfPoints, int numberOfIndividuals)
 {
-	int individual = blockIdx.x * blockDim.x + threadIdx.x;
+	const int individual = blockIdx.x * blockDim.x + threadIdx.x;
 	if (individual < numberOfIndividuals)
 	{
 		double MSE = 0.;
@@ -132,7 +132,7 @@ __global__ void Fitness(double *x, double *y, Polynomial *individuals, int numbe
 //Потоков = numberOfIndividuals - threshold.
 __global__ void Crossover(Polynomial *individuals, int numberOfIndividuals, int threshold)
 {
-	int individual = blockIdx.x + threshold;
+	const int individual = blockIdx.x * blockDim.x + threadIdx.x + threshold;
 	if (individual < numberOfIndividuals)
 	{
 		for (char i = 0; i < _Number_Of_Parameters; ++i)	//Худшие - умрут.
@@ -144,7 +144,7 @@ __global__ void Crossover(Polynomial *individuals, int numberOfIndividuals, int 
 
 __global__ void CrossoverNext(Polynomial *individuals, int numberOfIndividuals, int threshold)
 {
-	int individual = blockIdx.x + threshold;
+	const int individual = blockIdx.x * blockDim.x + threadIdx.x + threshold;
 	if (individual < numberOfIndividuals && !(individual % 2))
 	{
 		curandState state;
@@ -166,7 +166,7 @@ __global__ void CrossoverNext(Polynomial *individuals, int numberOfIndividuals, 
 //Потоков = threshold - 1.
 __global__ void Mutation(Polynomial *individuals, int numberOfIndividuals, int threshold, double mean, double variance)
 {
-	int individual = blockIdx.x + threshold + 1; 	//First individual is the best. That's why we don't touch it.
+	const int individual = blockIdx.x * blockDim.x + threadIdx.x + threshold + 1; 	//First individual is the best. That's why we don't touch it.
 	if (individual < numberOfIndividuals)
 	{
 		curandState state;
@@ -188,16 +188,8 @@ int main()
 {
 	srand((int)time(NULL));
 	bool dataFromFiles;
-	int numberOfPoints = NULL;
-	int numberOfIndividuals;
-	double mean, variance;
-	int numberOfEpochs;
-	int numberOfConstantEpochs;
-	int currentConstEpoch = 0;
-	int threshold;	// Порог разбивающий популяцию на две (равные) части.
-	double *x = nullptr;
-	double *y = nullptr;
-	double minimalError = std::numeric_limits<double>::max();
+	int numberOfPoints = NULL, numberOfIndividuals, numberOfEpochs, numberOfConstantEpochs, currentConstEpoch = 0;
+	double mean, variance, *x = nullptr, *y = nullptr, minimalError = std::numeric_limits<double>::max();
 	std::cout << "Points from files (1 - YES, 0 - NO): ";
 	std::cin >> dataFromFiles;
 	if (dataFromFiles)
@@ -224,8 +216,7 @@ int main()
 			WriteToFile("InputY.txt", y, numberOfPoints, false, "\n");
 		}
 	}
-	double *xGPU;
-	double *yGPU;
+	double *xGPU, *yGPU;
 	HANDLE_ERROR(cudaMalloc((void**)&xGPU, numberOfPoints * sizeof(double)));
 	HANDLE_ERROR(cudaMalloc((void**)&yGPU, numberOfPoints * sizeof(double)));
 	HANDLE_ERROR(cudaMemcpy(xGPU, x, numberOfPoints * sizeof(double), cudaMemcpyHostToDevice));
@@ -243,12 +234,16 @@ int main()
 	std::cin >> numberOfEpochs;
 	std::cout << "Number of epochs with constant value of the best fitness: ";
 	std::cin >> numberOfConstantEpochs;
-	threshold = int(numberOfIndividuals / 2.f + 0.5f);
-	
-	int threadsPerBlockDim = 32;
-	dim3 blockDim(threadsPerBlockDim, 1, 1);
-	int blocksPerGridDimX = (int)ceilf(numberOfIndividuals / (float)threadsPerBlockDim);
-	dim3 gridDim(blocksPerGridDimX, 1, 1);
+	const int threshold = int(numberOfIndividuals / 2.f + 0.5f),	// Порог разбивающий популяцию на две (равные) части.
+		threadsPerBlockDim = 32,
+		blocksPerGridDimX = (const int)ceilf(numberOfIndividuals / (float)threadsPerBlockDim),
+		blocksPerGridDimXCrossover = (numberOfIndividuals - threshold + threadsPerBlockDim - 1) / threadsPerBlockDim,
+		blocksPerGridDimXMutation = (threshold - 1 + threadsPerBlockDim - 1) / threadsPerBlockDim;
+	const dim3 blockDim(threadsPerBlockDim, 1, 1),
+		gridDim(blocksPerGridDimX, 1, 1),
+		gridDimCrossover(blocksPerGridDimXCrossover, 1, 1),
+		gridDimCrossoverNext(blocksPerGridDimXCrossover - 1, 1, 1),
+		gridDimMutation(blocksPerGridDimXMutation, 1, 1);
 
 	Polynomial *polynomials = (Polynomial*)malloc(numberOfIndividuals * sizeof(Polynomial));
 	for (int i = 0; i < numberOfIndividuals; i++)
@@ -283,9 +278,9 @@ int main()
 				break;
 		}
 		/// Репродукция и мутация.
-		Crossover<<<numberOfIndividuals - threshold, 1>>>(polynomialsGPU, numberOfIndividuals, threshold);
-		CrossoverNext<<<numberOfIndividuals - 1 - threshold, 1>>>(polynomialsGPU, numberOfIndividuals, threshold);
-		Mutation<<<threshold - 1, 1>>>(polynomialsGPU, numberOfIndividuals, threshold, mean, variance);
+		Crossover<<<gridDimCrossover, blockDim>>>(polynomialsGPU, numberOfIndividuals, threshold);
+		CrossoverNext<<<gridDimCrossoverNext, blockDim>>>(polynomialsGPU, numberOfIndividuals, threshold);
+		Mutation<<<gridDimMutation, blockDim>>>(polynomialsGPU, numberOfIndividuals, threshold, mean, variance);
 	}
 	stopTimer = clock();
 	printf("Time on GPU = %lf seconds.\n", (double)(stopTimer - startTimer) / CLOCKS_PER_SEC);
